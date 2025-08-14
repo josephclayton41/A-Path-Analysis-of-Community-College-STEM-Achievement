@@ -1,0 +1,301 @@
+---
+title: "Socioeconomic Status, Identity, and Mindset: A Path Analysis of Community College STEM Achievement"
+author: "Joseph Clayton"
+format:
+  html:
+    toc: true
+    number-sections: true
+    df-print: paged
+    embed-resources: true
+bibliography: references.bib
+csl: https://www.zotero.org/styles/apa
+editor: visual
+---
+
+```{r, include=FALSE}
+options(readr.show_col_types = FALSE)
+library(here)
+source(here("scripts", "1_load_and_clean.R"))
+source(here("scripts", "2_reliability_checks.R"))
+source(here("scripts", "3_visualize_likert.R"))
+source(here("scripts", "4_data_prep.R"))
+source(here("scripts", "5_models.R"))
+source(here("scripts", "6_visuals.R"))
+library(gt)
+library(knitr)
+```
+
+# Abstract
+
+This study explores whether Pell Grant eligibility, gender, or generational college status moderate the relationships between students’ meritocratic beliefs, STEM identity, and growth mindset, and whether these beliefs help explain academic performance (GPA).
+
+Using survey responses from over 400 STEM students at a community college, we created composite indices for each construct by averaging responses to selected Likert-scale items, reverse coding when needed. Reliability was confirmed using Cronbach’s alpha (`α > .70`), and multicollinearity tests showed no inter-item correlations above `|0.7|`. A structural equation model (SEM) was then fit to test whether these constructs predicted GPA, and whether these relationships differed across groups.
+
+Chi-square difference tests showed no statistically significant moderation by Pell eligibility, gender, or generational status. Despite this, there are still a few patterns worth noting. For non-Pell students, meritocratic beliefs had a negative relationship with GPA (`β = −0.14`), and for female students, growth mindset was a statistically significant positive predictor (`β = 0.18`). Still, no other paths were statistically significant, and the model explained only a small portion of GPA variance (maximum `R² = 0.026`), suggesting that psychosocial beliefs alone do not account for academic outcomes in this context.
+
+While meritocratic beliefs, STEM identity, and growth mindset may matter for student success, these constructs didn’t strongly predict GPA. The only factor to operate differently across student subgroups was `Growth Mindset` for `Female` students. Other factors likely play a larger role in predicting academic performance.
+
+# Background
+
+Community colleges enroll a large proportion of students who are historically excluded from STEM fields [@carales2019]. These institutions therefore serve as a critical entry point for diversifying the STEM workforce. This study seeks to answer the question: ***Does Pell Grant eligibility, gender, or generational college status moderate the relationships between students' meritocratic beliefs, STEM identity, and growth mindset, and in turn, do these beliefs differentially influence academic performance (GPA)?*** To answer this question we use the responses from the Culturally Contextual STEM Identity (`CCSI v5`) survey which were collected from a Hispanic-Serving Institution (HSI) community college in California. After cleaning we analyzed responses from **400+** participants.
+
+We first must define what growth mindset, STEM identity, and meritocratic beliefs mean. Growth mindset was pioneered by Carol Dweck and is the belief that your abilities can be developed through effort, effective strategies, and help from others rather than being fixed traits [@dweck2006]. A meritocratic ideology is the belief that in a given system a person's success is determined solely by individual ability and efforts [@wiederkehr2015]. Finally Arellano Jr. et al. [-@arellano2024, p. 4] define STEM identity as “an individual's sense of belonging, engagement, and identification within STEM.”
+
+Testing whether academic performance differ by students’ economic, gender, or generational status is important as if the pathways to GPA operate differently for Pell-eligible, female, or first-generation students, one-size-fits-all interventions will fall short. Identifying where the pathways diverge can guide equity-focused programming at two-year colleges, where most traditionally excluded students begin their STEM journeys.
+
+# Methods
+
+## Data Collecting and Cleaning
+
+The CCSI survey was distributed online to students enrolled in STEM courses at HSI community college located in California. We begin by loading the CCSI data, which is then filtered to only contain the relevant information. As a baseline, surveys with more than five missing responses were omitted. After cleaning, the sample included 417 responses. A question map is then created to display the questions utilized in this analysis with their respective variable label.
+
+```{r, echo = FALSE}
+relevant_vars <- c(
+  names(meritocratic_items),
+  names(stem_identity_items),
+  names(growth_mindset_items)
+) %>%                                   
+  str_remove("_rev$") %>%               
+  unique()
+
+question_map_tbl <- q_items %>%
+  mutate(variable_base = str_remove(variable, "_rev$")) %>% 
+  filter(variable_base %in% relevant_vars) %>%               
+  select(variable = variable_base, question) %>%             
+  distinct() %>%
+  gt() %>%
+  cols_label(variable = "Variable", question = "Question") %>%
+  text_transform(
+    locations = cells_body(columns = question),
+    fn = \(x) stringr::str_wrap(x, width = 70)
+  ) %>%
+  tab_options(
+    table.width = pct(100),
+    data_row.padding = px(2)
+  ) %>%
+  tab_header(title = "CCSI Question Map")
+
+question_map_tbl
+```
+
+## Measures and Reliability
+
+Prior exploratory factor analysis was used to determine the groupings for growth mindset, STEM identity, and meritocratic beliefs. Each item was measured using a 6-point Likert scale ranging from *Strongly Disagree* to *Strongly Agree*. The following plots show the distribution of the responses for each item within the three constructs as well as the distribution of cumulative GPA.
+
+::: panel-tabset
+### Growth Mindset
+
+```{r gm_plot, echo = FALSE}
+gm_plot
+```
+
+### STEM Identity
+
+```{r sid_plot, echo = FALSE}
+sid_plot
+```
+
+### Meritocratic Beliefs
+
+```{r mb_plot, echo = FALSE}
+mb_plot
+```
+
+### GPA
+```{r}
+gpa_plot
+```
+
+:::
+
+For the questions which are negatively phrased (`q6_1`, `q6_2`, `q8_1`, `q7_3`), we reverse code them so as to align with the other questions. To ensure that the grouped items reliably measure the same underlying construct, Cronbach’s alpha was used to assess the internal consistency of each construct. An alpha above `.7` is considered to be acceptable [@tavakol2011].
+
+```{r alpha_plot, echo = FALSE}
+include_graphics(here("outputs", "cronbach_alpha_plot.png"))
+```
+
+Since all Cronbach's alpha are greater than `.7` we can assume construct reliability. We next want to examine whether the key predictor variables exhibit multicollinearity.
+
+## Testing for Multicollinearity
+
+Prior to conducting path analysis, we must test for multicollinearity. If an index does exhibit multicollinearity, the validity of our structural estimates could be compromised.
+
+To evaluate multicollinearity, we examine the pairwise correlations between items within each construct. The correlation matrices were then visualized using heatmaps which can be seen below. As a general rule of thumb, no items should have correlation greater than `|0.7|` [@dormann2013]. Since all correlations fell well below `|0.7|`, we are confident that we can proceed.
+
+::: panel-tabset
+### Growth Mindset
+
+```{r gm_cor, echo = FALSE}
+include_graphics(here("outputs", "Growth Mindset","growth_mindset_heatmap.png"))
+```
+
+### STEM Identity
+
+```{r sid_cor, echo = FALSE}
+include_graphics(here("outputs", "STEM Identity","stem_identity_heatmap.png"))
+```
+
+### Meritocratic Beliefs
+
+```{r mb_cor, echo = FALSE}
+include_graphics(here("outputs", "Meritocratic Beliefs","meritocratic_heatmap.png"))
+```
+:::
+
+## Descriptive Statistics by Group
+
+Before running our path models, we first looked at how each of the key constructs varied across Pell eligibility, gender, and generational status. Each construct was represented as a composite index, created by taking the mean of the relevant survey items after reverse coding when necessary. The table below shows the mean, median, and standard deviation for each construct by group.
+
+```{r desc_stats, echo = FALSE}
+desc_table <- read_csv(here("outputs", "descriptives_by_group.csv"))
+
+desc_table_gt <- gt(desc_table) %>%
+  tab_header(title = "Descriptive Statistics by Group") %>%
+ cols_label(
+    N = "N",
+    GPA_Mean = "Mean", GPA_Median = "Median", GPA_SD = "SD",
+    Merit_Mean = "Mean", Merit_Median = "Median", Merit_SD = "SD",
+    STEM_ID_Mean = "Mean", STEM_ID_Median = "Median", STEM_ID_SD = "SD",
+    Growth_Mean = "Mean", Growth_Median = "Median", Growth_SD = "SD"
+  ) %>%
+  tab_spanner(label = "GPA", columns = starts_with("GPA_")) %>%
+  tab_spanner(label = "Meritocratic Beliefs", columns = starts_with("Merit_")) %>%
+  tab_spanner(label = "STEM Identity", columns = starts_with("STEM_ID_")) %>%
+  tab_spanner(label = "Growth Mindset", columns = starts_with("Growth_"))
+
+desc_table_gt
+```
+
+While these summaries aren’t meant to explain the relationships between variables, they offer helpful insight into where patterns may begin to emerge. For example we see that GPA tends to be higher among respondents who were not eligible for the Pell grant as well as for continuing generation students.
+
+## Path Model Overview and Model Fit
+
+For each group, we estimated a structural equation model (SEM) using the `lavaan` package in R. The model included GPA as the outcome, with meritocratic beliefs, STEM identity, and growth mindset as predictors.
+
+```{r model}
+model <- 'cumulative_gpa ~ meritocratic_index + stem_id_index + growth_mindset_index'
+```
+
+Each model was run using a multi-group approach, allowing us to estimate and compare paths across groups. We also tested for moderation by comparing a freely estimated model (where paths were allowed to differ) with a constrained model (where all regression paths were held equal across groups). A significant chi-square difference test would suggest moderation by group. Standardized path coefficients were extracted for each group, and R^2^ values were computed to examine how much variance in GPA was explained by the predictors.
+
+The next section breaks down the results for each grouping variable and report whether any path significantly differed across groups.
+
+# Results
+
+## Moderation Tests
+
+To test whether the structural paths varied by Pell eligibility, gender, or generational status, we compared freely estimated models (where paths could differ between groups) with constrained models (where all regression paths were held equal). The chi-square difference tests are shown below:
+
+```{r mod_table, echo = FALSE}
+mod_tbl_gt <- read_csv(here("outputs", "moderation_tests.csv")) %>%
+  gt() %>%
+    tab_header(title = "Δχ² Difference Tests for Moderation")
+
+mod_tbl_gt
+```
+
+None of the p-values were below the threshold of .05, meaning there was no statistically significant evidence that any of the grouping variables moderated the structural paths. While Pell eligibility showed the largest difference in chi-square (Δχ² = 6.05), the result was still not significant (`p = .109`). As a result, we proceed by examining path estimates within each group descriptively, rather than interpreting them as significantly different.
+
+## Path Coefficients by Group
+
+Even though our chi-square difference tests did not support significant moderation, we still examined the standardized path coefficients within each group to better understand how meritocratic beliefs, STEM identity, and growth mindset relate to academic performance (GPA) across different student populations.
+
+The table below summarizes the standardized regression coefficients (β), standard errors (SE), z-values, p-values, and significance for each path in each group:
+
+```{r coeff_table, echo = FALSE}
+coef_table <- read_csv(here("outputs", "path_coefficients_by_group.csv"))
+
+gt(coef_table) %>%
+  tab_header(title = "Standardized Path Coefficients by Group") %>%
+  fmt_number(columns = c(beta, se, z, p), decimals = 3) %>%
+  cols_label(
+    Grouping = "Grouping Variable",
+    Group = "Group",
+    Predictor = "Predictor",
+    beta = "β",
+    se = "SE",
+    z = "z",
+    p = "p-value",
+    Sig = "Significant (p < .05)"
+  )
+```
+
+Overall we see that besides `Growth Mindset` for the `Female` group, no other predictors were statistically significant. However, some patterns are still worth noting. Among non-Pell students, meritocratic beliefs had a negative relationship with GPA (`β = −0.137`, `p = .095`), just shy of significance. For Pell-eligible students, none of the predictors were statistically significant, though growth mindset had a positive trend (`β = 0.115`, `p = .135`) higher than that of noneligible students (`β = 0.023`, `p = .101`).
+
+The following plot visualizes the standardized path coefficients by Pell eligibility group. Although none of the paths were statistically different across groups, this figure helps illustrate how the relationships vary in strength and direction between Pell-eligible and non-Pell students.
+
+::: panel-tabset
+### Pell Eligible
+
+```{r, echo=FALSE}
+include_graphics(here("outputs/Pell/gpa_predictors_by_pell_group.png"))
+include_graphics(here("outputs/Pell/pell_path_diagram.png"))
+include_graphics(here("outputs/Pell/nonpell_path_diagram.png"))
+```
+
+### Generation
+
+```{r, echo=FALSE}
+include_graphics(here("outputs/Generation/gpa_predictors_by_generation.png"))
+include_graphics(here("outputs/Generation/firstgen_path_diagram.png"))
+include_graphics(here("outputs/Generation/latergen_path_diagram.png"))
+```
+
+### Gender
+
+```{r, echo=FALSE}
+include_graphics(here("outputs/Gender/gpa_predictors_by_gender.png"))
+include_graphics(here("outputs/Gender/female_path_diagram.png"))
+include_graphics(here("outputs/Gender/male_path_diagram.png"))
+```
+:::
+
+While these results do not support strong group-specific effects, the descriptive differences suggest that the strength and direction of the relationships between beliefs and GPA may still vary depending on students’ background.
+
+## Explained Variance(R^2^) by Group
+
+To assess how well the model explained students’ academic performance, we calculated the R² values for cumulative GPA within each group. These values represent the proportion of variance in GPA accounted for by the predictors.
+
+```{r rsquare, echo=FALSE}
+r2_tbl_gt <- read_csv(here("outputs", "r2_table.csv")) %>%
+  gt() %>%
+  tab_header(title = "R² Values for GPA by Group") %>%
+  fmt_number(columns = R2, decimals = 3) %>%
+  cols_label(
+    Grouping = "Grouping Variable",
+    Group = "Group",
+    R2 = "R²"
+  )
+
+r2_tbl_gt
+```
+
+The R^2^ values were generally low across all groups, with the highest R^2^ being observed among non-Pell students (`R² = 0.026`), followed by female students (`R² = 0.022`). This suggests that while these beliefs may play some role in GPA, they do not explain much of the variance on their own. Although growth mindset, STEM identity, and meritocratic beliefs may be part of the story, there are likely other academic or other factors contributing more strongly to students’ GPA.
+
+# Discussion
+
+## Summary of findings
+
+We tested whether Pell eligibility, gender, or generational status changed the strength of the paths from meritocratic beliefs, STEM identity, and growth mindset to GPA. Chi‑square difference tests indicated no significant differences for Pell eligibility, gender, or generational status, but subgroup patterns emerged:
+
+Within female students, growth mindset was the only statistically significant (`p = 0.034`) predictor of GPA (`β = 0.184`). For non-Pell students, although not quite statistically significant (`p = 0.095`), higher meritocratic beliefs predicted lower GPA (`β = -0.137`). All other predictors had a p-value greater than 0.1, and thus were not significant
+
+The moderation tests indicated no statistically significant differences in structural paths by Pell eligibility, gender, or generational status. However, the Δχ² difference test for the Pell grouping had a p-value of `p = 0.109` which may warrant further testing with larger samples.
+
+## Limitations
+
+Several factors should be considered when interpreting these findings. Firstly, the survey was conducted at a single Hispanic-Serving Institution, which limits generalizability. Also, since all the data was self-reported it may not be entirely accurate. Important key factors such as employment status or course load were not included which could have a significant effect on GPA. Finally, the cross-sectional design prevents causal claims; it is unclear whether beliefs influence GPA, or whether prior academic performance shapes beliefs.
+
+## Implications
+
+The results suggest that interventions aimed solely at shifting students’ beliefs may not lead to immediate improvements in GPA without complementary academic and structural supports. Efforts to strengthen growth mindset or STEM identity could be paired with concrete resources (tutoring, mentoring, structured study environments, etc.) to translate beliefs into sustained academic gains. Given the positive association between growth mindset and GPA among female students, gender-specific strategies might be worth exploring, though the small effect sizes caution against overgeneralization.
+
+## Future Research
+
+Future work could track students longitudinally to see whether these constructs predict retention, course completion, or GPA over multiple terms. Including additional predictors, such as academic preparedness, faculty support, and campus engagement, may yield a fuller picture of what drives STEM achievement in community college settings. Replicating the analysis across multiple two-year institutions would also help assess whether the observed patterns are consistent in other contexts.
+
+# Conclusion
+
+The central question asked whether background characteristics moderate the GPA relationships. Statistically, they did not. Descriptively, non‑Pell students with stronger meritocratic beliefs tended to have slightly lower GPA, and female students with stronger growth mindset tended to have slightly higher GPA. While female students with higher growth mindset scores showed slightly better GPAs, overall the models explained little of the variance in academic performance. These results highlight the complexity of predicting GPA from psychosocial measures alone and suggest that structural, academic, and behavioral factors likely play a larger role.
+
+# Acknowledgements {.unnumbered}
