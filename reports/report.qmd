@@ -7,6 +7,8 @@ format:
     number-sections: true
     df-print: paged
     embed-resources: true
+output-file: index.html
+output-dir: ../docs
 bibliography: references.bib
 csl: https://www.zotero.org/styles/apa
 editor: visual
@@ -102,10 +104,10 @@ mb_plot
 ```
 
 ### GPA
+
 ```{r}
 gpa_plot
 ```
-
 :::
 
 For the questions which are negatively phrased (`q6_1`, `q6_2`, `q8_1`, `q7_3`), we reverse code them so as to align with the other questions. To ensure that the grouped items reliably measure the same underlying construct, Cronbach’s alpha was used to assess the internal consistency of each construct. An alpha above `.7` is considered to be acceptable [@tavakol2011].
@@ -276,11 +278,9 @@ The R^2^ values were generally low across all groups, with the highest R^2^ bein
 
 ## Summary of findings
 
-We tested whether Pell eligibility, gender, or generational status changed the strength of the paths from meritocratic beliefs, STEM identity, and growth mindset to GPA. Chi‑square difference tests indicated no significant differences for Pell eligibility, gender, or generational status, but subgroup patterns emerged:
+We tested whether Pell eligibility, gender, or generational status changed the strength of the paths from meritocratic beliefs, STEM identity, and growth mindset to GPA. Chi‑square difference tests indicated no significant differences for Pell eligibility, gender, or generational status, however, the Pell grouping had a p-value of `p = 0.109` which may warrant further testing with larger samples. Other subgroup patterns also emerged:
 
 Within female students, growth mindset was the only statistically significant (`p = 0.034`) predictor of GPA (`β = 0.184`). For non-Pell students, although not quite statistically significant (`p = 0.095`), higher meritocratic beliefs predicted lower GPA (`β = -0.137`). All other predictors had a p-value greater than 0.1, and thus were not significant
-
-The moderation tests indicated no statistically significant differences in structural paths by Pell eligibility, gender, or generational status. However, the Δχ² difference test for the Pell grouping had a p-value of `p = 0.109` which may warrant further testing with larger samples.
 
 ## Limitations
 
