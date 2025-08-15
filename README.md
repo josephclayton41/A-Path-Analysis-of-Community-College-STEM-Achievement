@@ -39,6 +39,6 @@ Raw survey data has been excluded from this repository in order to protect parti
 
 ## View the Report
 
-[Click me to read the full report](https://josephclayton41.github.io/Socioeconomic-Status-Identity-and-Mindset-A-Path-Analysis-of-Community-College-STEM-Achievement/)
+[Click me to read the full report](https://josephclayton41.github.io/A-Path-Analysis-of-Community-College-STEM-Achievement/)
 
 [LinkedIn](https://www.linkedin.com/in/josephpclayton)
