@@ -4,7 +4,7 @@ This project examines whether Pell Grant eligibility, gender, or generational st
 
 ## Overview
 
-Survey data was collected from over 400 STEM students at an HSI community college in California using the **Culturally Contextual STEM Identity (CCSI v5)** survey.  
+Survey responses were collected from over 400 STEM students at an HSI community college in California using the **Culturally Contextual STEM Identity (CCSI v5)** survey.  
 Three composite indices were created:
 
 - **Meritocratic Beliefs** — The belief that success is determined solely by individual ability and effort.
@@ -15,7 +15,7 @@ A multi-group structural equation model (SEM) was used to test whether the relat
 
 ## Key Results
 
-- **No statistically significant moderation** was found for Pell Grant eligibility, gender, or generational status using chi-square difference tests.
+- **No statistically significant moderation** was found for Pell Grant eligibility, gender, or generational status using chi-square difference tests, however, the Pell grouping had a p-value of `p = 0.109` which may warrant further testing with larger samples..
 - **Female students** with higher growth mindset scores had significantly higher GPAs (`β = 0.184`, `p = 0.034`).
 - **Non-Pell students** with higher meritocratic beliefs tended to have lower GPAs (`β = -0.137`, `p = 0.095`), though this result was marginal.
 - All models explained **little variance in GPA** (highest R² = 0.026), suggesting that psychosocial beliefs alone do not strongly predict GPA.
