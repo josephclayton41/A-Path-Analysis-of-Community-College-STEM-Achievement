@@ -7,8 +7,6 @@ format:
     number-sections: true
     df-print: paged
     embed-resources: true
-output-file: index.html
-output-dir: ../docs
 bibliography: references.bib
 csl: https://www.zotero.org/styles/apa
 editor: visual
